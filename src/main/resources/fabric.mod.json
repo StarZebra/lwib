@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "lwib",
+  "version": "${version}",
+  "name": "lwib",
+  "description": "This mod aims to provide a lightweight implementation on modern versions of the popular inventory buttons widely used in HySB",
+  "authors": [
+    "iCop"
+  ],
+  "contact": {},
+  "license": "GPL-3.0",
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "me.starzebra.lwib.Lwib"
+    ]
+  },
+  "mixins": [
+    "lwib.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}

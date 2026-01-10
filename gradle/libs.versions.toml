@@ -1,0 +1,5 @@
+[versions]
+orbit = "0.2.4"
+
+[libraries]
+orbit = { module = "meteordevelopment:orbit", version.ref = "orbit" }
