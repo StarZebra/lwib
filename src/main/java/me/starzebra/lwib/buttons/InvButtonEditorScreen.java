@@ -19,8 +19,8 @@ import java.awt.*;
 public class InvButtonEditorScreen extends Screen {
 
     public static final ResourceLocation INVENTORY = ResourceLocation.withDefaultNamespace("textures/gui/container/inventory.png");
-    private int imageWidth = 176;
-    private int imageHeight = 166;
+    private final int imageWidth = 176;
+    private final int imageHeight = 166;
     private int leftPos = (Lwib.mc.getWindow().getGuiScaledWidth() - imageWidth) / 2;
     private int topPos = (Lwib.mc.getWindow().getGuiScaledHeight() - imageHeight) / 2;
     private EditBox commandBox;
@@ -91,14 +91,12 @@ public class InvButtonEditorScreen extends Screen {
         }else if (this.commandBox.isFocused() && this.commandBox.isVisible() && keyEvent.input() == 257){
 
             if (isEditingButton) {
-                Lwib.mc.player.displayClientMessage(Component.literal("Edited button"), true);
                 var button = Lwib.inventoryButtons.stream().filter(btn -> btn.getX() == (int) editingPos.x).findFirst().orElseThrow();
                 button.command = this.commandBox.getValue();
                 this.updateScreen();
                 return true;
             }
 
-            Lwib.mc.player.displayClientMessage(Component.literal("Saved a new button"), false);
             var button = new InventoryButton((int) (editingPos.x - leftPos), (int) (editingPos.y - topPos), this.commandBox.getValue());
             Lwib.inventoryButtons.add(button);
             this.updateScreen();
