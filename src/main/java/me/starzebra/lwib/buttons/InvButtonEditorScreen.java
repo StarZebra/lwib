@@ -25,8 +25,8 @@ public class InvButtonEditorScreen extends Screen {
     private int topPos = (Lwib.mc.getWindow().getGuiScaledHeight() - imageHeight) / 2;
     private EditBox commandBox;
     private Button deleteButton;
-    private boolean isEditingButton = false;
-    private Vec2 editingPos;
+    private Vec2 newBtnPos;
+    private InventoryButton selectedButton;
 
     public InvButtonEditorScreen() {
         super(Component.literal("Edit inventory buttons"));
@@ -48,8 +48,8 @@ public class InvButtonEditorScreen extends Screen {
             button.setY(topPos + button.offsetY);
         }
 
-        isEditingButton = false;
-        editingPos = null;
+        selectedButton = null;
+        newBtnPos = null;
         this.deleteButton = null;
         this.commandBox.setVisible(false);
     }
@@ -58,15 +58,15 @@ public class InvButtonEditorScreen extends Screen {
         this.deleteButton = Button.builder(Component.empty(), button -> {
 
             for (InventoryButton btn : Lwib.inventoryButtons) {
-                if (btn.getX() == (int) editingPos.x) {
+                if (btn == selectedButton) {
                     btn.markedForDeletion = true;
                 }
             }
 
             this.updateScreen();
-        }).bounds((int) editingPos.x + 101 - 16, (int) editingPos.y, 14, 15).build();
+        }).bounds(selectedButton.getX() + 101 - 16, selectedButton.getY(), 14, 15).build();
 
-        this.deleteButton.setTooltip(Tooltip.create(Component.literal("Delete this button!").withColor(Color.RED.getRGB())));
+        this.deleteButton.setTooltip(Tooltip.create(Component.literal("Delete this button?").withColor(Color.RED.getRGB())));
         this.deleteButton.setMessage(Component.literal("D"));
     }
 
@@ -90,14 +90,17 @@ public class InvButtonEditorScreen extends Screen {
             return true;
         }else if (this.commandBox.isFocused() && this.commandBox.isVisible() && keyEvent.input() == 257){
 
-            if (isEditingButton) {
-                var button = Lwib.inventoryButtons.stream().filter(btn -> btn.getX() == (int) editingPos.x).findFirst().orElseThrow();
-                button.command = this.commandBox.getValue();
+            if (selectedButton != null) {
+                selectedButton.command = this.commandBox.getValue();
                 this.updateScreen();
                 return true;
             }
 
-            var button = new InventoryButton((int) (editingPos.x - leftPos), (int) (editingPos.y - topPos), this.commandBox.getValue());
+            if (this.commandBox.getValue().trim().replace("/", "").isEmpty()) {
+                return true;
+            }
+
+            var button = new InventoryButton((int) (newBtnPos.x - leftPos), (int) (newBtnPos.y - topPos), this.commandBox.getValue().trim());
             Lwib.inventoryButtons.add(button);
             this.updateScreen();
 
@@ -134,16 +137,22 @@ public class InvButtonEditorScreen extends Screen {
         }
 
         if(mouseEvent.button() == 0){
-            var clickedPos = new Vec2((float) mouseEvent.x(), (float) mouseEvent.y());
+            var clickedPos = new Vec2((int) mouseEvent.x(), (int) mouseEvent.y());
             if(this.commandBox == null) return true;
 
+            if (selectedButton != null && !selectedButton.getRectangle().containsPoint((int) clickedPos.x, (int) clickedPos.y)) {
+                selectedButton = null;
+                newBtnPos = null;
+            }
+
+            //Editing a button
             for (InventoryButton button : Lwib.inventoryButtons) {
                 if (button.markedForDeletion) continue;
                 var buttonBounds = button.getRectangle();
-                if (buttonBounds.containsPoint((int) mouseEvent.x(), (int) mouseEvent.y())){
+                if (buttonBounds.containsPoint((int) mouseEvent.x(), (int) mouseEvent.y())) {
 
-                    isEditingButton = true;
-                    editingPos = new Vec2(button.getX(), button.getY());
+                    newBtnPos = null;
+                    selectedButton = button;
                     this.commandBox.moveCursorToStart(false);
                     this.commandBox.setVisible(true);
                     this.commandBox.setPosition(button.getX() - 1, button.getY() + 17);
@@ -155,18 +164,13 @@ public class InvButtonEditorScreen extends Screen {
                 }
             }
 
-            if (editingPos != null && clickedPos.distanceToSqr(editingPos) > 200){
-                isEditingButton = false;
-                editingPos = null;
-            }
+            //Creating a new button
+            this.commandBox.setVisible(true);
+            this.commandBox.setPosition((int) clickedPos.x - 1, (int) clickedPos.y + 17);
+            this.commandBox.setValue("/");
+            this.deleteButton = null;
+            newBtnPos = clickedPos;
 
-            if (!isEditingButton){
-                editingPos = clickedPos;
-                this.commandBox.setVisible(true);
-                this.commandBox.setPosition((int) editingPos.x - 1, (int) editingPos.y + 17);
-                this.commandBox.setValue("/");
-                this.deleteButton = null;
-            }
         }
 
         return super.mouseClicked(mouseEvent, bl);
@@ -174,8 +178,8 @@ public class InvButtonEditorScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int x, int y, float f) {
-        super.render(guiGraphics, x, y, f);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, INVENTORY, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
 
         for (InventoryButton button : Lwib.inventoryButtons) {
@@ -183,30 +187,38 @@ public class InvButtonEditorScreen extends Screen {
             guiGraphics.fill(RenderPipelines.GUI, button.getX(), button.getY(), button.getX() + button.getWidth(), button.getY() + button.getHeight(), 0xFFFF99FF);
         }
 
+        // Editor
+        if (newBtnPos != null || selectedButton != null) {
+            int x = (newBtnPos != null) ? (int) newBtnPos.x : selectedButton.getX();
+            int y = (newBtnPos != null) ? (int) newBtnPos.y : selectedButton.getY();
 
-        if (editingPos != null) {
-
-            //Background
-            guiGraphics.fill((int) editingPos.x - 2, (int) editingPos.y - 2, (int) editingPos.x + 101, (int) editingPos.y + 39, 0xFF222222);
-
-            //Button
-            guiGraphics.fill((int) editingPos.x, (int) editingPos.y,  (int) editingPos.x + 15, (int) editingPos.y + 15, 0xFFFFFFFF);
-
-            String str = "Create a button";
-
-            if (isEditingButton) {
-                str = "Editing...";
-            }
-
-            guiGraphics.drawString(Lwib.mc.font, str, (int) editingPos.x + 18, (int) editingPos.y + 4, 0xFFFFFFFF);
-
+            renderEditor(guiGraphics, x, y);
         }
 
         if (this.deleteButton != null) {
-            this.deleteButton.render(guiGraphics, x, y, f);
+            this.deleteButton.render(guiGraphics, mouseX, mouseY, partialTick);
         }
-        this.commandBox.render(guiGraphics, x, y, f);
+        this.commandBox.render(guiGraphics, mouseX, mouseY, partialTick);
 
+    }
+
+    private void renderEditor(GuiGraphics guiGraphics, int x, int y) {
+        // Background
+        guiGraphics.fill(x - 2, y - 2, x + 101, y + 39, 0xFF222222);
+
+        int color = 0xFFFFFFFF;
+        String str = "Create a button";
+
+        if (selectedButton != null) {
+            str = "Editing...";
+            color = selectedButton.color;
+        }
+
+        // Button
+        guiGraphics.fill(x, y, x + 15, y + 15, color);
+
+
+        guiGraphics.drawString(Lwib.mc.font, str, x + 18, y + 4, 0xFFFFFFFF);
     }
 
     @Override
