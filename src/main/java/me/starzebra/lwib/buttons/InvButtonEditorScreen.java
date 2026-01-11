@@ -84,6 +84,8 @@ public class InvButtonEditorScreen extends Screen {
         //don't apply blur effect
     }
 
+    //TODO: nextup support for changing color/item of button idk which yet
+
     @Override
     public boolean keyPressed(KeyEvent keyEvent) {
         if(this.commandBox.keyPressed(keyEvent)){

@@ -41,7 +41,7 @@ public class Lwib implements ModInitializer {
 
         EVENT_BUS.registerLambdaFactory(this.getClass().getPackageName(), (lookupInMethod, glass) -> (MethodHandles.Lookup) lookupInMethod.invoke(null, glass, MethodHandles.lookup()));
 
-        config = new File(FabricLoader.getInstance().getConfigDir().toFile(), "lwib-invButtons.json");
+        config = new File(FabricLoader.getInstance().getConfigDir().toFile(), "lwib-invbuttons.json");
 
         deserializeButtons();
 

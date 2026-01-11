@@ -34,8 +34,14 @@ public abstract class AbstractContainerScreenMixin extends Screen {
 
         for(InventoryButton invButton : Lwib.inventoryButtons){
             if(!(screenType instanceof InventoryScreen)){
-                if(invButton.getX() >= this.leftPos && invButton.getX() <= this.leftPos + this.imageWidth
-                        && invButton.getY() >= this.topPos && invButton.getY() <= this.topPos + this.imageHeight){
+
+                int trueX = (leftPos + invButton.offsetX);
+                int trueY = (topPos + invButton.offsetY);
+
+                if (trueX >= this.leftPos
+                        && trueX <= this.leftPos + this.imageWidth
+                        && trueY >= this.topPos
+                        && trueY <= this.topPos + this.imageHeight) {
                     continue; // Don't render buttons inside the player inventory when the screen isn't a player inventory
                 }
             }

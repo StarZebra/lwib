@@ -3,6 +3,7 @@ package me.starzebra.lwib.buttons;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import me.starzebra.lwib.Lwib;
+import me.starzebra.lwib.mixin.accessor.AbstractContainerScreenAccessor;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -20,6 +21,7 @@ public class InventoryButton extends AbstractWidget {
     public String command;
     private long lastClicked = 0L;
     public boolean markedForDeletion = false;
+    public int color;
 
     public static final Codec<InventoryButton> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.INT.fieldOf("offsetX").forGetter(InventoryButton::getOffsetX),
@@ -32,15 +34,17 @@ public class InventoryButton extends AbstractWidget {
         this.offsetX = x;
         this.offsetY = y;
         this.command = command;
+        this.color = 0xFFFFFFFF;
     }
 
     private void updateScreenPos(){
         Screen screen = Lwib.mc.screen;
 
-        var leftPos = (Lwib.mc.getWindow().getGuiScaledWidth() - 176) / 2;
-        var topPos = (Lwib.mc.getWindow().getGuiScaledHeight() - 166) / 2;
+        if (screen instanceof AbstractContainerScreen<?> container) {
+            var handledScreen = (AbstractContainerScreenAccessor) container;
+            int leftPos = handledScreen.getX();
+            int topPos = handledScreen.getY();
 
-        if (screen instanceof AbstractContainerScreen<?>) {
             this.setX(leftPos + offsetX);
             this.setY(topPos + offsetY);
         }
@@ -49,11 +53,13 @@ public class InventoryButton extends AbstractWidget {
     @Override
     public void onClick(MouseButtonEvent event, boolean isDoubleClick) {
         //super.onClick(event, isDoubleClick);
-        if(System.currentTimeMillis() - lastClicked < 100) return; //Add a small delay to not get banned for spamming commands
+        if (System.currentTimeMillis() - lastClicked < 100)
+            return; // Add a small delay to not get banned for spamming commands
         this.lastClicked = System.currentTimeMillis();
         if(isActive()){
-            if(Lwib.mc.getConnection() == null) return; //IntelliJ required null check :D
-            Lwib.mc.getConnection().sendCommand(command.replace("/",""));
+            if (Lwib.mc.getConnection() == null) return; // IntelliJ required null check :D
+            Lwib.mc.getConnection().sendChat(command);
+            //Lwib.mc.getConnection().sendCommand(command.replace("/",""));
         }
 
     }
@@ -62,6 +68,7 @@ public class InventoryButton extends AbstractWidget {
     public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         if(!isActive()) return;
         this.updateScreenPos();
+
 
         guiGraphics.fill(RenderPipelines.GUI, getX(), getY(), getX() + this.width, getY() + this.height, ARGB.color(255, 0xFF99FF));
 
@@ -73,7 +80,7 @@ public class InventoryButton extends AbstractWidget {
 
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
-        //ignored
+        // ignored
     }
 
     public int getOffsetX() {
