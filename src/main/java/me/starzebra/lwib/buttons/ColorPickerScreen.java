@@ -12,7 +12,6 @@ public class ColorPickerScreen extends Screen {
 
     private final Screen parent;
     private final ColorSelectionCallback callback;
-    private final int initialColor;
 
     private int red;
     private int green;
@@ -37,7 +36,6 @@ public class ColorPickerScreen extends Screen {
         super(Component.literal("Choose Color"));
         this.parent = parent;
         this.callback = callback;
-        this.initialColor = initialColor;
 
         // Extract ARGB components
         this.alpha = (initialColor >> 24) & 0xFF;
