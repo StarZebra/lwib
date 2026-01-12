@@ -29,8 +29,10 @@ public class InvButtonEditorScreen extends Screen {
     private EditBox commandBox;
     private Button deleteButton;
     private Button selectItemButton;
+    private Button selectColorButton;
     private Vec2 newBtnPos;
     private InventoryButton selectedButton;
+    private final int editorWidth = 107;
 
     public InvButtonEditorScreen() {
         super(Component.literal("Edit inventory buttons"));
@@ -56,18 +58,40 @@ public class InvButtonEditorScreen extends Screen {
         newBtnPos = null;
         this.deleteButton = null;
         this.selectItemButton = null;
+        this.selectColorButton = null;
         this.commandBox.setVisible(false);
     }
 
+    private void initColorPicker() {
+        int currentColor = selectedButton != null ? selectedButton.color : 0xFFFFFFFF;
+        if (newBtnPos == null && selectedButton == null) return;
+
+        int x = (newBtnPos != null) ? (int) newBtnPos.x : selectedButton.getX();
+        int y = (newBtnPos != null) ? (int) newBtnPos.y : selectedButton.getY();
+
+        this.selectColorButton = Button.builder(Component.literal("C"), button -> {
+            // Open the color picker screen
+            ColorPickerScreen colorScreen = new ColorPickerScreen(this, currentColor, (selectedColor) -> {
+                // This callback is called when a color is selected
+                if (selectedButton != null) {
+                    selectedButton.color = selectedColor;
+                }
+            });
+            Lwib.mc.setScreen(colorScreen);
+        }).bounds(x + editorWidth - 16 - 15 - 15, y, 14, 15).build();
+
+        this.selectColorButton.setTooltip(Tooltip.create(Component.literal("Change button color")));
+    }
+
     private void initItemSelector() {
-        this.selectItemButton = Button.builder(Component.literal("Item"), button -> {
+        this.selectItemButton = Button.builder(Component.literal("I"), button -> {
             ItemSelectionScreen itemScreen = new ItemSelectionScreen(this, (item) -> {
                 if (item != null) {
                     selectedButton.icon = item;
                 }
             });
             Lwib.setScreen(itemScreen);
-        }).bounds(selectedButton.getX() + 101 - 16 - 20, selectedButton.getY(), 18, 15).build();
+        }).bounds(selectedButton.getX() + editorWidth - 16 - 15, selectedButton.getY(), 14, 15).build();
 
         this.selectItemButton.setTooltip(Tooltip.create(Component.literal("Select display item").withColor(Color.WHITE.getRGB())));
     }
@@ -80,17 +104,19 @@ public class InvButtonEditorScreen extends Screen {
                 }
             }
             this.updateScreen();
-        }).bounds(selectedButton.getX() + 101 - 16, selectedButton.getY(), 14, 15).build();
+        }).bounds(selectedButton.getX() + editorWidth - 16, selectedButton.getY(), 14, 15).build();
 
-        this.deleteButton.setTooltip(Tooltip.create(Component.literal("Delete this button?").withColor(Color.RED.getRGB())));
-        this.deleteButton.setMessage(Component.literal("D"));
+        this.deleteButton.setTooltip(Tooltip.create(Component.literal("Delete this button").withColor(Color.RED.getRGB())));
+        this.deleteButton.setMessage(Component.literal("D").withColor(Color.RED.getRGB()));
 
         initItemSelector();
+
+        initColorPicker();
     }
 
     private void initEditor() {
         String string = this.commandBox != null ? this.commandBox.getValue() : "";
-        this.commandBox = new EditBox(Lwib.mc.font, 0, 0, 100, 20, Component.empty());
+        this.commandBox = new EditBox(Lwib.mc.font, 0, 0, editorWidth - 1, 20, Component.empty());
         this.commandBox.setVisible(false);
         this.commandBox.setMaxLength(50);
         this.commandBox.setValue(string);
@@ -160,6 +186,12 @@ public class InvButtonEditorScreen extends Screen {
             }
         }
 
+        if (this.selectColorButton != null) {
+            if (this.selectColorButton.mouseClicked(mouseEvent, isDoubleClick)) {
+                return true;
+            }
+        }
+
         if(mouseEvent.button() == 0){
             var clickedPos = new Vec2((int) mouseEvent.x(), (int) mouseEvent.y());
             if(this.commandBox == null) return true;
@@ -194,6 +226,7 @@ public class InvButtonEditorScreen extends Screen {
             this.commandBox.setValue("/");
             this.deleteButton = null;
             this.selectItemButton = null;
+            this.selectColorButton = null;
             newBtnPos = clickedPos;
 
         }
@@ -236,13 +269,17 @@ public class InvButtonEditorScreen extends Screen {
             this.selectItemButton.render(guiGraphics, mouseX, mouseY, partialTick);
         }
 
+        if (this.selectColorButton != null) {
+            this.selectColorButton.render(guiGraphics, mouseX, mouseY, partialTick);
+        }
+
         this.commandBox.render(guiGraphics, mouseX, mouseY, partialTick);
 
     }
 
     private void renderEditor(GuiGraphics guiGraphics, int x, int y) {
         // Background
-        guiGraphics.fill(x - 2, y - 2, x + 101, y + 39, 0xFF222222);
+        guiGraphics.fill(x - 2, y - 2, x + editorWidth, y + 39, 0xFF222222);
 
         int color = 0xFFFFFFFF;
         String str = "Create a button";
