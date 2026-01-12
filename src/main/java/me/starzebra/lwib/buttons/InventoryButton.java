@@ -12,7 +12,8 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.ARGB;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 public class InventoryButton extends AbstractWidget {
 
@@ -22,19 +23,32 @@ public class InventoryButton extends AbstractWidget {
     private long lastClicked = 0L;
     public boolean markedForDeletion = false;
     public int color;
+    public ItemStack icon;
 
     public static final Codec<InventoryButton> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.INT.fieldOf("offsetX").forGetter(InventoryButton::getOffsetX),
             Codec.INT.fieldOf("offsetY").forGetter(InventoryButton::getOffsetY),
-            Codec.STRING.fieldOf("command").forGetter(InventoryButton::getCommand)
+            Codec.STRING.fieldOf("command").forGetter(InventoryButton::getCommand),
+            Codec.INT.fieldOf("bgColor").forGetter(InventoryButton::getColor),
+            ItemStack.CODEC.fieldOf("icon").forGetter(InventoryButton::getIcon)
     ).apply(instance, InventoryButton::new));
 
+    public InventoryButton(int x, int y, String command, int color, ItemStack icon) {
+        super(-50, -50, 16, 16, Component.empty());
+        this.offsetX = x;
+        this.offsetY = y;
+        this.command = command;
+        this.color = color;
+        this.icon = icon;
+    }
+
     public InventoryButton(int x, int y, String command){
-        super(-50, -50, 15, 15, Component.empty());
+        super(-50, -50, 16, 16, Component.empty());
         this.offsetX = x;
         this.offsetY = y;
         this.command = command;
         this.color = 0xFFFFFFFF;
+        this.icon = Items.GRAY_DYE.getDefaultInstance();
     }
 
     private void updateScreenPos(){
@@ -59,7 +73,6 @@ public class InventoryButton extends AbstractWidget {
         if(isActive()){
             if (Lwib.mc.getConnection() == null) return; // IntelliJ required null check :D
             Lwib.mc.getConnection().sendChat(command);
-            //Lwib.mc.getConnection().sendCommand(command.replace("/",""));
         }
 
     }
@@ -69,8 +82,11 @@ public class InventoryButton extends AbstractWidget {
         if(!isActive()) return;
         this.updateScreenPos();
 
+        guiGraphics.fill(RenderPipelines.GUI, getX(), getY(), getX() + this.width, getY() + this.height, this.color);
 
-        guiGraphics.fill(RenderPipelines.GUI, getX(), getY(), getX() + this.width, getY() + this.height, ARGB.color(255, 0xFF99FF));
+        if (this.icon != null) {
+            guiGraphics.renderItem(this.icon, getX(), getY());
+        }
 
     }
 
@@ -93,6 +109,14 @@ public class InventoryButton extends AbstractWidget {
 
     public String getCommand() {
         return command;
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public ItemStack getIcon() {
+        return icon;
     }
 
 }
