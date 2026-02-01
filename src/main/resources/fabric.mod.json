@@ -15,6 +15,7 @@
       "me.starzebra.lwib.Lwib"
     ]
   },
+  "icon": "assets/lwib/icon.png",
   "mixins": [
     "lwib.mixins.json"
   ],
