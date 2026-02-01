@@ -142,6 +142,7 @@ public class ItemSelectionScreen extends Screen {
             // Highlight on hover
             if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
                 guiGraphics.fill(RenderPipelines.GUI, x, y, x + 16, y + 16, 0x80FFFFFF);
+                guiGraphics.drawString(Lwib.mc.font, stack.getDisplayName(), mouseX, mouseY, 0xFFFFFFFF);
             }
 
             // Render item

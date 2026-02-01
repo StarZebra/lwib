@@ -11,6 +11,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -71,10 +72,13 @@ public class InventoryButton extends AbstractWidget {
             return; // Add a small delay to not get banned for spamming commands
         this.lastClicked = System.currentTimeMillis();
         if(isActive()){
-            if (Lwib.mc.getConnection() == null) return; // IntelliJ required null check :D
-            Lwib.mc.getConnection().sendChat(command);
+            if (Lwib.mc.getConnection() == null) return;
+            if (isCommand()) {
+                Lwib.mc.getConnection().sendCommand(command.substring(1));
+            } else {
+                Lwib.mc.getConnection().sendChat(command);
+            }
         }
-
     }
 
     @Override
@@ -94,9 +98,18 @@ public class InventoryButton extends AbstractWidget {
         return !command.trim().isEmpty();
     }
 
+    private boolean isCommand() {
+        return command.trim().startsWith("/");
+    }
+
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
         // ignored
+    }
+
+    @Override
+    public void playDownSound(SoundManager handler) {
+        // Remove the click sound
     }
 
     public int getOffsetX() {
