@@ -142,11 +142,28 @@ public class ItemSelectionScreen extends Screen {
             // Highlight on hover
             if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
                 guiGraphics.fill(RenderPipelines.GUI, x, y, x + 16, y + 16, 0x80FFFFFF);
-                guiGraphics.drawString(Lwib.mc.font, stack.getDisplayName(), mouseX, mouseY, 0xFFFFFFFF);
             }
 
             // Render item
             guiGraphics.renderItem(stack, x, y);
+
+        }
+
+        // Render item name
+        for (int i = startIndex; i < endIndex; i++) {
+            int localIndex = i - startIndex;
+            int row = localIndex / itemsPerRow;
+            int col = localIndex % itemsPerRow;
+
+            int x = gridStartX + col * itemSize;
+            int y = gridStartY + row * itemSize;
+
+            if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
+                Item item = filteredItems.get(i);
+                ItemStack stack = item.getDefaultInstance();
+                guiGraphics.drawString(Lwib.mc.font, stack.getHoverName(), mouseX + 2, mouseY + 2, 0xFFFFFFFF);
+                break;
+            }
         }
 
         // Scroll indicator
