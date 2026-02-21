@@ -236,15 +236,9 @@ public class InvButtonEditorScreen extends Screen {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (selectedButton == null) return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
-        for (InventoryButton button : Lwib.inventoryButtons) {
-            if (button.isMarkedForDeletion()) continue;
-            var buttonBounds = button.getRectangle();
-            if (buttonBounds.containsPoint((int) mouseX, (int) mouseY)) {
-                float prevSize = button.getSize();
-                float step = (float) (0.1 * scrollY);
-                button.setButtonSize(prevSize + step);
-            }
-        }
+        float prevSize = selectedButton.getSize();
+        float step = (float) (0.1 * scrollY);
+        selectedButton.setButtonSize(prevSize + step);
         return true;
     }
 
@@ -276,6 +270,8 @@ public class InvButtonEditorScreen extends Screen {
             int y = (newBtnPos != null) ? (int) newBtnPos.y : selectedButton.getY();
 
             renderEditor(guiGraphics, x, y);
+
+            guiGraphics.drawCenteredString(Lwib.mc.font, Component.literal("Hint: You can resize a button with scroll wheel while editing it."), this.width / 2, 20, 0xFFAAAAAA);
         }
 
         if (this.deleteButton != null) {
@@ -310,16 +306,15 @@ public class InvButtonEditorScreen extends Screen {
         int iconOffset = (int) (size * 8);
 
         final int topPadding = 20;
-        final int editorW = 120;
         final int editorH = (int) (size * 16) + this.commandBox.getHeight() + 4;
 
-        final int startX = x - editorW / 2 + iconOffset;
+        final int startX = x - EDITOR_WIDTH / 2 + iconOffset;
         final int startY = y - topPadding;
 
-        final int endX = x + editorW / 2 + iconOffset;
+        final int endX = x + EDITOR_WIDTH / 2 + iconOffset;
 
         // Background
-        guiGraphics.fill(startX, startY, x + editorW / 2 + iconOffset, y + editorH, 0xFF222222);
+        guiGraphics.fill(startX, startY, x + EDITOR_WIDTH / 2 + iconOffset, y + editorH, 0xFF222222);
 
         this.commandBox.setPosition(startX + 2, y + 2 + (int) (size * 16));
 
