@@ -15,6 +15,7 @@ import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import org.joml.Matrix3x2fStack;
 
 public class InventoryButton extends AbstractWidget {
 
@@ -25,8 +26,18 @@ public class InventoryButton extends AbstractWidget {
     private boolean markedForDeletion = false;
     private int color;
     private ItemStack icon;
+    private float size;
 
     public static final Codec<InventoryButton> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.INT.fieldOf("offsetX").forGetter(InventoryButton::getOffsetX),
+            Codec.INT.fieldOf("offsetY").forGetter(InventoryButton::getOffsetY),
+            Codec.STRING.fieldOf("command").forGetter(InventoryButton::getCommand),
+            Codec.INT.fieldOf("bgColor").forGetter(InventoryButton::getColor),
+            ItemStack.CODEC.fieldOf("icon").forGetter(InventoryButton::getIcon),
+            Codec.FLOAT.fieldOf("size").forGetter(InventoryButton::getSize)
+    ).apply(instance, InventoryButton::new));
+
+    public static final Codec<InventoryButton> LEGACY_CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.INT.fieldOf("offsetX").forGetter(InventoryButton::getOffsetX),
             Codec.INT.fieldOf("offsetY").forGetter(InventoryButton::getOffsetY),
             Codec.STRING.fieldOf("command").forGetter(InventoryButton::getCommand),
@@ -41,6 +52,19 @@ public class InventoryButton extends AbstractWidget {
         this.command = command;
         this.color = color;
         this.icon = icon;
+        this.size = 1f;
+    }
+
+    public InventoryButton(int x, int y, String command, int color, ItemStack icon, float size) {
+        super(-50, -50, 16, 16, Component.empty());
+        this.offsetX = x;
+        this.offsetY = y;
+        this.command = command;
+        this.color = color;
+        this.icon = icon;
+        this.size = size;
+        setWidth((int) (width * size));
+        setHeight((int) (height * size));
     }
 
     public InventoryButton(int x, int y, String command){
@@ -50,6 +74,7 @@ public class InventoryButton extends AbstractWidget {
         this.command = command;
         this.color = 0xFFFFFFFF;
         this.icon = Items.GRAY_DYE.getDefaultInstance();
+        this.size = 1f;
     }
 
     private void updateScreenPos(){
@@ -89,7 +114,12 @@ public class InventoryButton extends AbstractWidget {
         guiGraphics.fill(RenderPipelines.GUI, getX(), getY(), getX() + this.width, getY() + this.height, this.color);
 
         if (this.icon != null) {
+
+            Matrix3x2fStack pose = guiGraphics.pose();
+            pose.pushMatrix();
+            pose.translate((float) width / 2 - 8, (float) width / 2 - 8); // Center the icon
             guiGraphics.renderItem(this.icon, getX(), getY());
+            pose.popMatrix();
         }
 
     }
@@ -132,6 +162,10 @@ public class InventoryButton extends AbstractWidget {
         return icon;
     }
 
+    public float getSize() {
+        return size != 0f ? size : 1f;
+    }
+
     public boolean isMarkedForDeletion() {
         return markedForDeletion;
     }
@@ -150,5 +184,12 @@ public class InventoryButton extends AbstractWidget {
 
     public void setColor(int color) {
         this.color = color;
+    }
+
+    public void setButtonSize(float size) {
+        if ((int) size > 4 || (int) size < 1) return;
+        this.size = size;
+        setWidth((int) (16 * size));
+        setHeight((int) (16 * size));
     }
 }

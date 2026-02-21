@@ -15,6 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec2;
+import org.joml.Matrix3x2fStack;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
@@ -32,7 +33,7 @@ public class InvButtonEditorScreen extends Screen {
     private Button selectColorButton;
     private Vec2 newBtnPos;
     private InventoryButton selectedButton;
-    private final int editorWidth = 107;
+    private final int EDITOR_WIDTH = 120;
 
     public InvButtonEditorScreen() {
         super(Component.literal("Edit inventory buttons"));
@@ -66,9 +67,6 @@ public class InvButtonEditorScreen extends Screen {
         int currentColor = selectedButton != null ? selectedButton.getColor() : 0xFFFFFFFF;
         if (newBtnPos == null && selectedButton == null) return;
 
-        int x = (newBtnPos != null) ? (int) newBtnPos.x : selectedButton.getX();
-        int y = (newBtnPos != null) ? (int) newBtnPos.y : selectedButton.getY();
-
         this.selectColorButton = Button.builder(Component.literal("C"), button -> {
             // Open the color picker screen
             ColorPickerScreen colorScreen = new ColorPickerScreen(this, currentColor, (selectedColor) -> {
@@ -78,7 +76,7 @@ public class InvButtonEditorScreen extends Screen {
                 }
             });
             Lwib.mc.setScreen(colorScreen);
-        }).bounds(x + editorWidth - 16 - 15 - 15, y, 14, 15).build();
+        }).bounds(0, 0, 14, 15).build();
 
         this.selectColorButton.setTooltip(Tooltip.create(Component.literal("Change button color")));
     }
@@ -91,7 +89,7 @@ public class InvButtonEditorScreen extends Screen {
                 }
             });
             Lwib.setScreen(itemScreen);
-        }).bounds(selectedButton.getX() + editorWidth - 16 - 15, selectedButton.getY(), 14, 15).build();
+        }).bounds(0, 0, 14, 15).build();
 
         this.selectItemButton.setTooltip(Tooltip.create(Component.literal("Select display item").withColor(Color.WHITE.getRGB())));
     }
@@ -104,7 +102,7 @@ public class InvButtonEditorScreen extends Screen {
                 }
             }
             this.updateScreen();
-        }).bounds(selectedButton.getX() + editorWidth - 16, selectedButton.getY(), 14, 15).build();
+        }).bounds(0, 0, 14, 15).build();
 
         this.deleteButton.setTooltip(Tooltip.create(Component.literal("Delete this button").withColor(Color.RED.getRGB())));
         this.deleteButton.setMessage(Component.literal("D").withColor(Color.RED.getRGB()));
@@ -116,7 +114,7 @@ public class InvButtonEditorScreen extends Screen {
 
     private void initEditor() {
         String string = this.commandBox != null ? this.commandBox.getValue() : "";
-        this.commandBox = new EditBox(Lwib.mc.font, 0, 0, editorWidth - 1, 20, Component.empty());
+        this.commandBox = new EditBox(Lwib.mc.font, 0, 0, EDITOR_WIDTH - 4, 20, Component.empty());
         this.commandBox.setVisible(false);
         this.commandBox.setMaxLength(50);
         this.commandBox.setValue(string);
@@ -211,7 +209,7 @@ public class InvButtonEditorScreen extends Screen {
                     selectedButton = button;
                     this.commandBox.moveCursorToStart(false);
                     this.commandBox.setVisible(true);
-                    this.commandBox.setPosition(button.getX() - 1, button.getY() + 17);
+                    this.commandBox.setPosition(button.getX() - 42, button.getY() + (int) (button.getSize() * 16));
                     this.commandBox.setValue(button.getCommand());
 
                     initDelete();
@@ -236,6 +234,21 @@ public class InvButtonEditorScreen extends Screen {
     }
 
     @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (selectedButton == null) return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        for (InventoryButton button : Lwib.inventoryButtons) {
+            if (button.isMarkedForDeletion()) continue;
+            var buttonBounds = button.getRectangle();
+            if (buttonBounds.containsPoint((int) mouseX, (int) mouseY)) {
+                float prevSize = button.getSize();
+                float step = (float) (0.1 * scrollY);
+                button.setButtonSize(prevSize + step);
+            }
+        }
+        return true;
+    }
+
+    @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, INVENTORY, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
@@ -250,7 +263,11 @@ public class InvButtonEditorScreen extends Screen {
         for (InventoryButton button : Lwib.inventoryButtons) {
             if (button.isMarkedForDeletion()) continue;
             guiGraphics.fill(RenderPipelines.GUI, button.getX(), button.getY(), button.getX() + button.getWidth(), button.getY() + button.getHeight(), button.getColor());
+            Matrix3x2fStack pose = guiGraphics.pose();
+            pose.pushMatrix();
+            pose.translate(16 * button.getSize() / 2 - 8, 16 * button.getSize() / 2 - 8);
             guiGraphics.renderItem(button.getIcon(), button.getX(), button.getY());
+            pose.popMatrix();
         }
 
         // Editor
@@ -278,26 +295,52 @@ public class InvButtonEditorScreen extends Screen {
     }
 
     private void renderEditor(GuiGraphics guiGraphics, int x, int y) {
-        // Background
-        guiGraphics.fill(x - 2, y - 2, x + editorWidth, y + 39, 0xFF222222);
-
         int color = 0xFFFFFFFF;
         String str = "Create a button";
         ItemStack icon = Items.GRAY_DYE.getDefaultInstance();
+        float size = 1f;
 
         if (selectedButton != null) {
             str = "Editing...";
             color = selectedButton.getColor();
             icon = selectedButton.getIcon();
+            size = selectedButton.getSize();
         }
 
-        guiGraphics.drawString(Lwib.mc.font, str, x + 19, y + 4, 0xFFFFFFFF);
+        int iconOffset = (int) (size * 8);
+
+        final int topPadding = 20;
+        final int editorW = 120;
+        final int editorH = (int) (size * 16) + this.commandBox.getHeight() + 4;
+
+        final int startX = x - editorW / 2 + iconOffset;
+        final int startY = y - topPadding;
+
+        final int endX = x + editorW / 2 + iconOffset;
+
+        // Background
+        guiGraphics.fill(startX, startY, x + editorW / 2 + iconOffset, y + editorH, 0xFF222222);
+
+        this.commandBox.setPosition(startX + 2, y + 2 + (int) (size * 16));
+
+        if (selectedButton != null) {
+            this.selectColorButton.setPosition(endX - 15 - 15, y - 8 - topPadding / 2);
+            this.deleteButton.setPosition(endX - 15, y - 8 - topPadding / 2);
+            this.selectItemButton.setPosition(endX - 15 - 30, y - 8 - topPadding / 2);
+        }
+
+        // Text
+        guiGraphics.drawString(Lwib.mc.font, str, startX + 4, y - 4 - topPadding / 2, 0xFFFFFFFF);
 
         // Button
-        guiGraphics.fill(x, y, x + 16, y + 16, color);
+        guiGraphics.fill(x, y, (int) (x + 16 * size), (int) (y + 16 * size), color);
 
         // Icon
+        Matrix3x2fStack pose = guiGraphics.pose();
+        pose.pushMatrix();
+        pose.translate(16 * size / 2 - 8, 16 * size / 2 - 8);
         guiGraphics.renderItem(icon, x, y);
+        pose.popMatrix();
 
     }
 

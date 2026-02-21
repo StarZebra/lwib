@@ -61,7 +61,6 @@ public class Lwib implements ModInitializer {
 
     public static void serializeButtons(){
         JsonArray array = new JsonArray(inventoryButtons.size());
-
         try {
 
             for (InventoryButton button : inventoryButtons){
@@ -89,7 +88,12 @@ public class Lwib implements ModInitializer {
             JsonArray jsonArray = (JsonArray) JsonParser.parseString(content);
 
             for (JsonElement json : jsonArray) {
-                DataResult<InventoryButton> button = InventoryButton.CODEC.parse(JsonOps.INSTANCE, json);
+                DataResult<InventoryButton> button;
+                if (json.getAsJsonObject().has("size")) {
+                    button = InventoryButton.CODEC.parse(JsonOps.INSTANCE, json);
+                } else {
+                    button = InventoryButton.LEGACY_CODEC.parse(JsonOps.INSTANCE, json);
+                }
                 loadedButtons.add(button.resultOrPartial().orElseThrow());
             }
 
