@@ -18,13 +18,13 @@ import net.minecraft.world.item.Items;
 
 public class InventoryButton extends AbstractWidget {
 
-    public int offsetX;
-    public int offsetY;
-    public String command;
+    private final int offsetX;
+    private final int offsetY;
+    private String command;
     private long lastClicked = 0L;
-    public boolean markedForDeletion = false;
-    public int color;
-    public ItemStack icon;
+    private boolean markedForDeletion = false;
+    private int color;
+    private ItemStack icon;
 
     public static final Codec<InventoryButton> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.INT.fieldOf("offsetX").forGetter(InventoryButton::getOffsetX),
@@ -132,4 +132,23 @@ public class InventoryButton extends AbstractWidget {
         return icon;
     }
 
+    public boolean isMarkedForDeletion() {
+        return markedForDeletion;
+    }
+
+    public void setMarkedForDeletion(boolean markedForDeletion) {
+        this.markedForDeletion = markedForDeletion;
+    }
+
+    public void setCommand(String command) {
+        this.command = command;
+    }
+
+    public void setIcon(ItemStack icon) {
+        this.icon = icon;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
+    }
 }

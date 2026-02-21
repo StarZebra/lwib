@@ -50,8 +50,8 @@ public class InvButtonEditorScreen extends Screen {
         topPos = (Lwib.mc.getWindow().getGuiScaledHeight() - imageHeight) / 2;
 
         for (InventoryButton button : Lwib.inventoryButtons) {
-            button.setX(leftPos + button.offsetX);
-            button.setY(topPos + button.offsetY);
+            button.setX(leftPos + button.getOffsetX());
+            button.setY(topPos + button.getOffsetY());
         }
 
         selectedButton = null;
@@ -63,7 +63,7 @@ public class InvButtonEditorScreen extends Screen {
     }
 
     private void initColorPicker() {
-        int currentColor = selectedButton != null ? selectedButton.color : 0xFFFFFFFF;
+        int currentColor = selectedButton != null ? selectedButton.getColor() : 0xFFFFFFFF;
         if (newBtnPos == null && selectedButton == null) return;
 
         int x = (newBtnPos != null) ? (int) newBtnPos.x : selectedButton.getX();
@@ -74,7 +74,7 @@ public class InvButtonEditorScreen extends Screen {
             ColorPickerScreen colorScreen = new ColorPickerScreen(this, currentColor, (selectedColor) -> {
                 // This callback is called when a color is selected
                 if (selectedButton != null) {
-                    selectedButton.color = selectedColor;
+                    selectedButton.setColor(selectedColor);
                 }
             });
             Lwib.mc.setScreen(colorScreen);
@@ -87,7 +87,7 @@ public class InvButtonEditorScreen extends Screen {
         this.selectItemButton = Button.builder(Component.literal("I"), button -> {
             ItemSelectionScreen itemScreen = new ItemSelectionScreen(this, (item) -> {
                 if (item != null) {
-                    selectedButton.icon = item;
+                    selectedButton.setIcon(item);
                 }
             });
             Lwib.setScreen(itemScreen);
@@ -100,7 +100,7 @@ public class InvButtonEditorScreen extends Screen {
         this.deleteButton = Button.builder(Component.empty(), button -> {
             for (InventoryButton btn : Lwib.inventoryButtons) {
                 if (btn == selectedButton) {
-                    btn.markedForDeletion = true;
+                    btn.setMarkedForDeletion(true);
                 }
             }
             this.updateScreen();
@@ -135,7 +135,7 @@ public class InvButtonEditorScreen extends Screen {
         } else if (this.commandBox.isFocused() && this.commandBox.isVisible() && keyEvent.input() == GLFW.GLFW_KEY_ENTER) {
 
             if (selectedButton != null) {
-                selectedButton.command = this.commandBox.getValue();
+                selectedButton.setCommand(this.commandBox.getValue());
                 this.updateScreen();
                 return true;
             }
@@ -203,7 +203,7 @@ public class InvButtonEditorScreen extends Screen {
 
             // Editing a button
             for (InventoryButton button : Lwib.inventoryButtons) {
-                if (button.markedForDeletion) continue;
+                if (button.isMarkedForDeletion()) continue;
                 var buttonBounds = button.getRectangle();
                 if (buttonBounds.containsPoint((int) mouseEvent.x(), (int) mouseEvent.y())) {
 
@@ -212,7 +212,7 @@ public class InvButtonEditorScreen extends Screen {
                     this.commandBox.moveCursorToStart(false);
                     this.commandBox.setVisible(true);
                     this.commandBox.setPosition(button.getX() - 1, button.getY() + 17);
-                    this.commandBox.setValue(button.command);
+                    this.commandBox.setValue(button.getCommand());
 
                     initDelete();
 
@@ -248,9 +248,9 @@ public class InvButtonEditorScreen extends Screen {
         guiGraphics.drawCenteredString(Lwib.mc.font, this.title, this.width / 2, 10, 0xFFFFFFFF);
 
         for (InventoryButton button : Lwib.inventoryButtons) {
-            if (button.markedForDeletion) continue;
-            guiGraphics.fill(RenderPipelines.GUI, button.getX(), button.getY(), button.getX() + button.getWidth(), button.getY() + button.getHeight(), button.color);
-            guiGraphics.renderItem(button.icon, button.getX(), button.getY());
+            if (button.isMarkedForDeletion()) continue;
+            guiGraphics.fill(RenderPipelines.GUI, button.getX(), button.getY(), button.getX() + button.getWidth(), button.getY() + button.getHeight(), button.getColor());
+            guiGraphics.renderItem(button.getIcon(), button.getX(), button.getY());
         }
 
         // Editor
@@ -287,8 +287,8 @@ public class InvButtonEditorScreen extends Screen {
 
         if (selectedButton != null) {
             str = "Editing...";
-            color = selectedButton.color;
-            icon = selectedButton.icon;
+            color = selectedButton.getColor();
+            icon = selectedButton.getIcon();
         }
 
         guiGraphics.drawString(Lwib.mc.font, str, x + 19, y + 4, 0xFFFFFFFF);
@@ -304,7 +304,7 @@ public class InvButtonEditorScreen extends Screen {
     @Override
     public void onClose() {
         super.onClose();
-        Lwib.inventoryButtons.removeIf(btn -> btn.markedForDeletion);
+        Lwib.inventoryButtons.removeIf(InventoryButton::isMarkedForDeletion);
         Lwib.serializeButtons();
     }
 }
