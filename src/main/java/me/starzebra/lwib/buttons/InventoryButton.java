@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import org.joml.Matrix3x2fStack;
+import org.jspecify.annotations.NonNull;
 
 public class InventoryButton extends AbstractWidget {
 
@@ -24,7 +25,7 @@ public class InventoryButton extends AbstractWidget {
     private String command;
     private long lastClicked = 0L;
     private boolean markedForDeletion = false;
-    private boolean isBottomAnchored;
+    private final boolean isBottomAnchored;
     private int color;
     private ItemStackTemplate icon;
     private float size;
@@ -83,7 +84,7 @@ public class InventoryButton extends AbstractWidget {
     }
 
     @Override
-    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+    protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
         if (!isActive()) return;
         this.updateScreenPos();
 
@@ -100,7 +101,7 @@ public class InventoryButton extends AbstractWidget {
     }
 
     @Override
-    public void onClick(MouseButtonEvent event, boolean isDoubleClick) {
+    public void onClick(@NonNull MouseButtonEvent event, boolean isDoubleClick) {
         //super.onClick(event, isDoubleClick);
         if (System.currentTimeMillis() - lastClicked < 100)
             return; // Add a small delay to not get banned for spamming commands
@@ -124,12 +125,12 @@ public class InventoryButton extends AbstractWidget {
     }
 
     @Override
-    protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+    protected void updateWidgetNarration(@NonNull NarrationElementOutput narrationElementOutput) {
         // ignored
     }
 
     @Override
-    public void playDownSound(SoundManager handler) {
+    public void playDownSound(@NonNull SoundManager handler) {
         // Remove the click sound
     }
 
@@ -186,9 +187,5 @@ public class InventoryButton extends AbstractWidget {
 
     public boolean isBottomAnchored() {
         return isBottomAnchored;
-    }
-
-    public void setBottomAnchored(boolean bottomAnchored) {
-        isBottomAnchored = bottomAnchored;
     }
 }

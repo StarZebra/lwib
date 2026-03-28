@@ -128,12 +128,12 @@ public class InvButtonEditorScreen extends Screen {
     }
 
     @Override
-    protected void extractBlurredBackground(GuiGraphicsExtractor graphics) {
+    protected void extractBlurredBackground(@NonNull GuiGraphicsExtractor graphics) {
         //don't apply blur effect
     }
 
     @Override
-    public boolean keyPressed(KeyEvent keyEvent) {
+    public boolean keyPressed(@NonNull KeyEvent keyEvent) {
         if(this.commandBox.keyPressed(keyEvent)){
             return true;
         } else if (this.commandBox.isFocused() && this.commandBox.isVisible() && keyEvent.input() == GLFW.GLFW_KEY_ENTER) {
@@ -174,7 +174,7 @@ public class InvButtonEditorScreen extends Screen {
     }
 
     @Override
-    public boolean charTyped(CharacterEvent characterEvent) {
+    public boolean charTyped(@NonNull CharacterEvent characterEvent) {
         if(this.commandBox.charTyped(characterEvent)){
             return true;
         }
@@ -182,7 +182,7 @@ public class InvButtonEditorScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(MouseButtonEvent mouseEvent, boolean isDoubleClick) {
+    public boolean mouseClicked(@NonNull MouseButtonEvent mouseEvent, boolean isDoubleClick) {
 
         if(this.commandBox != null){
             if (this.commandBox.mouseClicked(mouseEvent, isDoubleClick)) {
@@ -263,13 +263,13 @@ public class InvButtonEditorScreen extends Screen {
     }
 
     @Override
-    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+    public void extractBackground(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
         super.extractBackground(graphics, mouseX, mouseY, a);
         graphics.blit(RenderPipelines.GUI_TEXTURED, INVENTORY, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
 
         graphics.centeredText(Lwib.mc.font, this.title, this.width / 2, 10, 0xFFFFFFFF);

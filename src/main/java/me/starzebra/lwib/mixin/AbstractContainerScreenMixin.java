@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,10 +18,12 @@ public abstract class AbstractContainerScreenMixin extends Screen {
 
     @Shadow protected int leftPos;
 
+    @Final
     @Shadow protected int imageWidth;
 
     @Shadow protected int topPos;
 
+    @Final
     @Shadow protected int imageHeight;
 
     protected AbstractContainerScreenMixin(Component title) {
