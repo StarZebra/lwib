@@ -89,11 +89,8 @@ public class Lwib implements ModInitializer {
 
             for (JsonElement json : jsonArray) {
                 DataResult<InventoryButton> button;
-                if (json.getAsJsonObject().has("size")) {
-                    button = InventoryButton.CODEC.parse(JsonOps.INSTANCE, json);
-                } else {
-                    button = InventoryButton.LEGACY_CODEC.parse(JsonOps.INSTANCE, json);
-                }
+
+                button = InventoryButton.CODEC.parse(JsonOps.INSTANCE, json);
                 loadedButtons.add(button.resultOrPartial().orElseThrow());
             }
 

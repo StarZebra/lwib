@@ -1,7 +1,7 @@
 package me.starzebra.lwib.buttons;
 
 import me.starzebra.lwib.Lwib;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
@@ -11,7 +11,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec2;
@@ -22,7 +22,7 @@ import java.awt.*;
 
 public class InvButtonEditorScreen extends Screen {
 
-    public static final ResourceLocation INVENTORY = ResourceLocation.withDefaultNamespace("textures/gui/container/inventory.png");
+    public static final Identifier INVENTORY = Identifier.withDefaultNamespace("textures/gui/container/inventory.png");
     private final int imageWidth = 176;
     private final int imageHeight = 166;
     private int leftPos = (Lwib.mc.getWindow().getGuiScaledWidth() - imageWidth) / 2;
@@ -67,7 +67,7 @@ public class InvButtonEditorScreen extends Screen {
         int currentColor = selectedButton != null ? selectedButton.getColor() : 0xFFFFFFFF;
         if (newBtnPos == null && selectedButton == null) return;
 
-        this.selectColorButton = Button.builder(Component.literal("C"), button -> {
+        this.selectColorButton = Button.builder(Component.literal("C"), _ -> {
             // Open the color picker screen
             ColorPickerScreen colorScreen = new ColorPickerScreen(this, currentColor, (selectedColor) -> {
                 // This callback is called when a color is selected
@@ -82,7 +82,7 @@ public class InvButtonEditorScreen extends Screen {
     }
 
     private void initItemSelector() {
-        this.selectItemButton = Button.builder(Component.literal("I"), button -> {
+        this.selectItemButton = Button.builder(Component.literal("I"), _ -> {
             ItemSelectionScreen itemScreen = new ItemSelectionScreen(this, (item) -> {
                 if (item != null) {
                     selectedButton.setIcon(item);
@@ -95,7 +95,7 @@ public class InvButtonEditorScreen extends Screen {
     }
 
     private void initDelete() {
-        this.deleteButton = Button.builder(Component.empty(), button -> {
+        this.deleteButton = Button.builder(Component.empty(), _ -> {
             for (InventoryButton btn : Lwib.inventoryButtons) {
                 if (btn == selectedButton) {
                     btn.setMarkedForDeletion(true);
@@ -122,7 +122,7 @@ public class InvButtonEditorScreen extends Screen {
     }
 
     @Override
-    protected void renderBlurredBackground(GuiGraphics context){
+    protected void extractBlurredBackground(GuiGraphicsExtractor graphics) {
         //don't apply blur effect
     }
 
@@ -243,24 +243,24 @@ public class InvButtonEditorScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, INVENTORY, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        super.extractBackground(graphics, mouseX, mouseY, a);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, INVENTORY, leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
 
-        guiGraphics.drawCenteredString(Lwib.mc.font, this.title, this.width / 2, 10, 0xFFFFFFFF);
+        graphics.centeredText(Lwib.mc.font, this.title, this.width / 2, 10, 0xFFFFFFFF);
 
         for (InventoryButton button : Lwib.inventoryButtons) {
             if (button.isMarkedForDeletion()) continue;
-            guiGraphics.fill(RenderPipelines.GUI, button.getX(), button.getY(), button.getX() + button.getWidth(), button.getY() + button.getHeight(), button.getColor());
-            Matrix3x2fStack pose = guiGraphics.pose();
+            graphics.fill(RenderPipelines.GUI, button.getX(), button.getY(), button.getX() + button.getWidth(), button.getY() + button.getHeight(), button.getColor());
+            Matrix3x2fStack pose = graphics.pose();
             pose.pushMatrix();
             pose.translate(16 * button.getSize() / 2 - 8, 16 * button.getSize() / 2 - 8);
-            guiGraphics.renderItem(button.getIcon(), button.getX(), button.getY());
+            graphics.item(button.getIcon().create(), button.getX(), button.getY());
             pose.popMatrix();
         }
 
@@ -269,28 +269,28 @@ public class InvButtonEditorScreen extends Screen {
             int x = (newBtnPos != null) ? (int) newBtnPos.x : selectedButton.getX();
             int y = (newBtnPos != null) ? (int) newBtnPos.y : selectedButton.getY();
 
-            renderEditor(guiGraphics, x, y);
+            renderEditor(graphics, x, y);
 
-            guiGraphics.drawCenteredString(Lwib.mc.font, Component.literal("Hint: You can resize a button with scroll wheel while editing it."), this.width / 2, 20, 0xFFAAAAAA);
+            graphics.centeredText(Lwib.mc.font, Component.literal("Hint: You can resize a button with scroll wheel while editing it."), this.width / 2, 20, 0xFFAAAAAA);
         }
 
         if (this.deleteButton != null) {
-            this.deleteButton.render(guiGraphics, mouseX, mouseY, partialTick);
+            this.deleteButton.extractRenderState(graphics, mouseX, mouseY, partialTick);
         }
 
         if (this.selectItemButton != null) {
-            this.selectItemButton.render(guiGraphics, mouseX, mouseY, partialTick);
+            this.selectItemButton.extractRenderState(graphics, mouseX, mouseY, partialTick);
         }
 
         if (this.selectColorButton != null) {
-            this.selectColorButton.render(guiGraphics, mouseX, mouseY, partialTick);
+            this.selectColorButton.extractRenderState(graphics, mouseX, mouseY, partialTick);
         }
 
-        this.commandBox.render(guiGraphics, mouseX, mouseY, partialTick);
-
+        this.commandBox.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
-    private void renderEditor(GuiGraphics guiGraphics, int x, int y) {
+
+    private void renderEditor(GuiGraphicsExtractor graphics, int x, int y) {
         int color = 0xFFFFFFFF;
         String str = "Create a button";
         ItemStack icon = Items.GRAY_DYE.getDefaultInstance();
@@ -299,7 +299,7 @@ public class InvButtonEditorScreen extends Screen {
         if (selectedButton != null) {
             str = "Editing...";
             color = selectedButton.getColor();
-            icon = selectedButton.getIcon();
+            icon = selectedButton.getIcon().create();
             size = selectedButton.getSize();
         }
 
@@ -314,7 +314,7 @@ public class InvButtonEditorScreen extends Screen {
         final int endX = x + EDITOR_WIDTH / 2 + iconOffset;
 
         // Background
-        guiGraphics.fill(startX, startY, x + EDITOR_WIDTH / 2 + iconOffset, y + editorH, 0xFF222222);
+        graphics.fill(startX, startY, x + EDITOR_WIDTH / 2 + iconOffset, y + editorH, 0xFF222222);
 
         this.commandBox.setPosition(startX + 2, y + 2 + (int) (size * 16));
 
@@ -325,16 +325,16 @@ public class InvButtonEditorScreen extends Screen {
         }
 
         // Text
-        guiGraphics.drawString(Lwib.mc.font, str, startX + 4, y - 4 - topPadding / 2, 0xFFFFFFFF);
+        graphics.text(Lwib.mc.font, str, startX + 4, y - 4 - topPadding / 2, 0xFFFFFFFF);
 
         // Button
-        guiGraphics.fill(x, y, (int) (x + 16 * size), (int) (y + 16 * size), color);
+        graphics.fill(x, y, (int) (x + 16 * size), (int) (y + 16 * size), color);
 
         // Icon
-        Matrix3x2fStack pose = guiGraphics.pose();
+        Matrix3x2fStack pose = graphics.pose();
         pose.pushMatrix();
         pose.translate(16 * size / 2 - 8, 16 * size / 2 - 8);
-        guiGraphics.renderItem(icon, x, y);
+        graphics.item(icon, x, y);
         pose.popMatrix();
 
     }

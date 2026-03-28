@@ -7,7 +7,10 @@
   "authors": [
     "iCop"
   ],
-  "contact": {},
+  "contact": {
+    "sources": "https://github.com/StarZebra/lwib",
+    "issues": "https://github.com/StarZebra/lwib/issues"
+  },
   "license": "GPL-3.0",
   "environment": "client",
   "entrypoints": {

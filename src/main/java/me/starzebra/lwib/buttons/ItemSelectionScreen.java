@@ -1,7 +1,7 @@
 package me.starzebra.lwib.buttons;
 
 import me.starzebra.lwib.Lwib;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.CharacterEvent;
@@ -12,6 +12,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import org.lwjgl.glfw.GLFW;
 
@@ -103,17 +104,17 @@ public class ItemSelectionScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
 
         // Title
-        guiGraphics.drawCenteredString(Lwib.mc.font, this.title, this.width / 2, 10, 0xFFFFFF);
+        graphics.centeredText(Lwib.mc.font, this.title, this.width / 2, 10, 0xFFFFFF);
 
         // Search box
-        this.searchBox.render(guiGraphics, mouseX, mouseY, partialTick);
+        this.searchBox.extractRenderState(graphics, mouseX, mouseY, partialTick);
 
         // Grid background
-        guiGraphics.fill(
+        graphics.fill(
                 gridStartX - 2,
                 gridStartY - 2,
                 gridStartX + gridWidth + 2,
@@ -141,11 +142,11 @@ public class ItemSelectionScreen extends Screen {
 
             // Highlight on hover
             if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
-                guiGraphics.fill(RenderPipelines.GUI, x, y, x + 16, y + 16, 0x80FFFFFF);
+                graphics.fill(RenderPipelines.GUI, x, y, x + 16, y + 16, 0x80FFFFFF);
             }
 
             // Render item
-            guiGraphics.renderItem(stack, x, y);
+            graphics.item(stack, x, y);
 
         }
 
@@ -161,7 +162,7 @@ public class ItemSelectionScreen extends Screen {
             if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
                 Item item = filteredItems.get(i);
                 ItemStack stack = item.getDefaultInstance();
-                guiGraphics.drawString(Lwib.mc.font, stack.getHoverName(), mouseX + 2, mouseY + 2, 0xFFFFFFFF);
+                graphics.text(Lwib.mc.font, stack.getHoverName(), mouseX + 2, mouseY + 2, 0xFFFFFFFF);
                 break;
             }
         }
@@ -169,7 +170,7 @@ public class ItemSelectionScreen extends Screen {
         // Scroll indicator
         if (maxScroll > 0) {
             String scrollText = String.format("Page %d / %d (Scroll to navigate)", scrollOffset + 1, maxScroll + 1);
-            guiGraphics.drawCenteredString(
+            graphics.centeredText(
                     Lwib.mc.font,
                     scrollText,
                     this.width / 2,
@@ -180,7 +181,7 @@ public class ItemSelectionScreen extends Screen {
 
         // Item count
         String countText = String.format("Showing %d items", filteredItems.size());
-        guiGraphics.drawString(
+        graphics.text(
                 Lwib.mc.font,
                 countText,
                 gridStartX,
@@ -213,7 +214,7 @@ public class ItemSelectionScreen extends Screen {
 
                 if (index >= 0 && index < filteredItems.size()) {
                     Item selectedItem = filteredItems.get(index);
-                    callback.onItemSelected(selectedItem.getDefaultInstance());
+                    callback.onItemSelected(ItemStackTemplate.fromNonEmptyStack(selectedItem.getDefaultInstance()));
                     this.onClose();
                     return true;
                 }
@@ -269,6 +270,6 @@ public class ItemSelectionScreen extends Screen {
 
     @FunctionalInterface
     public interface ItemSelectionCallback {
-        void onItemSelected(ItemStack item);
+        void onItemSelected(ItemStackTemplate item);
     }
 }

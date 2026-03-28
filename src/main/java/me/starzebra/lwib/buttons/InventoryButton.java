@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import me.starzebra.lwib.Lwib;
 import me.starzebra.lwib.mixin.accessor.AbstractContainerScreenAccessor;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
@@ -13,7 +13,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import org.joml.Matrix3x2fStack;
 
@@ -25,7 +25,7 @@ public class InventoryButton extends AbstractWidget {
     private long lastClicked = 0L;
     private boolean markedForDeletion = false;
     private int color;
-    private ItemStack icon;
+    private ItemStackTemplate icon;
     private float size;
 
     public static final Codec<InventoryButton> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -33,29 +33,11 @@ public class InventoryButton extends AbstractWidget {
             Codec.INT.fieldOf("offsetY").forGetter(InventoryButton::getOffsetY),
             Codec.STRING.fieldOf("command").forGetter(InventoryButton::getCommand),
             Codec.INT.fieldOf("bgColor").forGetter(InventoryButton::getColor),
-            ItemStack.CODEC.fieldOf("icon").forGetter(InventoryButton::getIcon),
+            ItemStackTemplate.CODEC.fieldOf("icon").forGetter(InventoryButton::getIcon),
             Codec.FLOAT.fieldOf("size").forGetter(InventoryButton::getSize)
     ).apply(instance, InventoryButton::new));
 
-    public static final Codec<InventoryButton> LEGACY_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.INT.fieldOf("offsetX").forGetter(InventoryButton::getOffsetX),
-            Codec.INT.fieldOf("offsetY").forGetter(InventoryButton::getOffsetY),
-            Codec.STRING.fieldOf("command").forGetter(InventoryButton::getCommand),
-            Codec.INT.fieldOf("bgColor").forGetter(InventoryButton::getColor),
-            ItemStack.CODEC.fieldOf("icon").forGetter(InventoryButton::getIcon)
-    ).apply(instance, InventoryButton::new));
-
-    public InventoryButton(int x, int y, String command, int color, ItemStack icon) {
-        super(-50, -50, 16, 16, Component.empty());
-        this.offsetX = x;
-        this.offsetY = y;
-        this.command = command;
-        this.color = color;
-        this.icon = icon;
-        this.size = 1f;
-    }
-
-    public InventoryButton(int x, int y, String command, int color, ItemStack icon, float size) {
+    public InventoryButton(int x, int y, String command, int color, ItemStackTemplate icon, float size) {
         super(-50, -50, 16, 16, Component.empty());
         this.offsetX = x;
         this.offsetY = y;
@@ -73,7 +55,7 @@ public class InventoryButton extends AbstractWidget {
         this.offsetY = y;
         this.command = command;
         this.color = 0xFFFFFFFF;
-        this.icon = Items.GRAY_DYE.getDefaultInstance();
+        this.icon = ItemStackTemplate.fromNonEmptyStack(Items.GRAY_DYE.getDefaultInstance());
         this.size = 1f;
     }
 
@@ -91,6 +73,23 @@ public class InventoryButton extends AbstractWidget {
     }
 
     @Override
+    protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+        if (!isActive()) return;
+        this.updateScreenPos();
+
+        graphics.fill(RenderPipelines.GUI, getX(), getY(), getX() + this.width, getY() + this.height, this.color);
+
+        if (this.icon != null) {
+
+            Matrix3x2fStack pose = graphics.pose();
+            pose.pushMatrix();
+            pose.translate((float) width / 2 - 8, (float) width / 2 - 8); // Center the icon
+            graphics.item(this.icon.create(), getX(), getY());
+            pose.popMatrix();
+        }
+    }
+
+    @Override
     public void onClick(MouseButtonEvent event, boolean isDoubleClick) {
         //super.onClick(event, isDoubleClick);
         if (System.currentTimeMillis() - lastClicked < 100)
@@ -104,24 +103,6 @@ public class InventoryButton extends AbstractWidget {
                 Lwib.mc.getConnection().sendChat(command);
             }
         }
-    }
-
-    @Override
-    public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        if(!isActive()) return;
-        this.updateScreenPos();
-
-        guiGraphics.fill(RenderPipelines.GUI, getX(), getY(), getX() + this.width, getY() + this.height, this.color);
-
-        if (this.icon != null) {
-
-            Matrix3x2fStack pose = guiGraphics.pose();
-            pose.pushMatrix();
-            pose.translate((float) width / 2 - 8, (float) width / 2 - 8); // Center the icon
-            guiGraphics.renderItem(this.icon, getX(), getY());
-            pose.popMatrix();
-        }
-
     }
 
     public boolean isActive() {
@@ -158,7 +139,7 @@ public class InventoryButton extends AbstractWidget {
         return color;
     }
 
-    public ItemStack getIcon() {
+    public ItemStackTemplate getIcon() {
         return icon;
     }
 
@@ -178,7 +159,7 @@ public class InventoryButton extends AbstractWidget {
         this.command = command;
     }
 
-    public void setIcon(ItemStack icon) {
+    public void setIcon(ItemStackTemplate icon) {
         this.icon = icon;
     }
 

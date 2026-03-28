@@ -1,7 +1,7 @@
 package me.starzebra.lwib.buttons;
 
 import me.starzebra.lwib.Lwib;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -135,7 +135,7 @@ public class ColorPickerScreen extends Screen {
         // Cancel button
         this.cancelButton = Button.builder(
                 Component.literal("Cancel"),
-                button -> this.onClose()
+                _ -> this.onClose()
         ).bounds(centerX + 5, buttonY, 100, 20).build();
 
         this.addRenderableWidget(redSlider);
@@ -147,31 +147,31 @@ public class ColorPickerScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
 
         // Title
-        guiGraphics.drawCenteredString(Lwib.mc.font, this.title, this.width / 2, 20, 0xFFFFFFFF);
+        graphics.centeredText(Lwib.mc.font, this.title, this.width / 2, 20, 0xFFFFFFFF);
 
         // Checkerboard background for transparency visualization
-        drawCheckerboard(guiGraphics, previewX, previewY, previewSize, previewSize);
+        drawCheckerboard(graphics, previewX, previewY, previewSize, previewSize);
 
         // Current color preview
         int currentColor = (alpha << 24) | (red << 16) | (green << 8) | blue;
-        guiGraphics.fill(RenderPipelines.GUI, previewX, previewY, previewX + previewSize, previewY + previewSize, currentColor);
+        graphics.fill(RenderPipelines.GUI, previewX, previewY, previewX + previewSize, previewY + previewSize, currentColor);
 
         // Border around preview
-        guiGraphics.fill(previewX - 1, previewY - 1, previewX + previewSize + 1, previewY, 0xFFFFFFFF);
-        guiGraphics.fill(previewX - 1, previewY + previewSize, previewX + previewSize + 1, previewY + previewSize + 1, 0xFFFFFFFF);
-        guiGraphics.fill(previewX - 1, previewY, previewX, previewY + previewSize, 0xFFFFFFFF);
-        guiGraphics.fill(previewX + previewSize, previewY, previewX + previewSize + 1, previewY + previewSize, 0xFFFFFFFF);
+        graphics.fill(previewX - 1, previewY - 1, previewX + previewSize + 1, previewY, 0xFFFFFFFF);
+        graphics.fill(previewX - 1, previewY + previewSize, previewX + previewSize + 1, previewY + previewSize + 1, 0xFFFFFFFF);
+        graphics.fill(previewX - 1, previewY, previewX, previewY + previewSize, 0xFFFFFFFF);
+        graphics.fill(previewX + previewSize, previewY, previewX + previewSize + 1, previewY + previewSize, 0xFFFFFFFF);
 
         // Hex color code
         String hexColor = String.format("#%02X%02X%02X%02X", alpha, red, green, blue);
-        guiGraphics.drawCenteredString(Lwib.mc.font, hexColor, this.width / 2, previewY + previewSize + 5, 0xFFAAAAAA);
+        graphics.centeredText(Lwib.mc.font, hexColor, this.width / 2, previewY + previewSize + 5, 0xFFAAAAAA);
     }
 
-    private void drawCheckerboard(GuiGraphics guiGraphics, int x, int y, int width, int height) {
+    private void drawCheckerboard(GuiGraphicsExtractor guiGraphics, int x, int y, int width, int height) {
         int squareSize = 8;
         for (int i = 0; i < width; i += squareSize) {
             for (int j = 0; j < height; j += squareSize) {
