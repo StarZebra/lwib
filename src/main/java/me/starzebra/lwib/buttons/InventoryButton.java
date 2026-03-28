@@ -24,6 +24,7 @@ public class InventoryButton extends AbstractWidget {
     private String command;
     private long lastClicked = 0L;
     private boolean markedForDeletion = false;
+    private boolean isBottomAnchored;
     private int color;
     private ItemStackTemplate icon;
     private float size;
@@ -34,10 +35,11 @@ public class InventoryButton extends AbstractWidget {
             Codec.STRING.fieldOf("command").forGetter(InventoryButton::getCommand),
             Codec.INT.fieldOf("bgColor").forGetter(InventoryButton::getColor),
             ItemStackTemplate.CODEC.fieldOf("icon").forGetter(InventoryButton::getIcon),
-            Codec.FLOAT.fieldOf("size").forGetter(InventoryButton::getSize)
+            Codec.FLOAT.fieldOf("size").forGetter(InventoryButton::getSize),
+            Codec.BOOL.fieldOf("bottomAnchored").forGetter(InventoryButton::isBottomAnchored)
     ).apply(instance, InventoryButton::new));
 
-    public InventoryButton(int x, int y, String command, int color, ItemStackTemplate icon, float size) {
+    public InventoryButton(int x, int y, String command, int color, ItemStackTemplate icon, float size, boolean bottomAnchored) {
         super(-50, -50, 16, 16, Component.empty());
         this.offsetX = x;
         this.offsetY = y;
@@ -45,11 +47,12 @@ public class InventoryButton extends AbstractWidget {
         this.color = color;
         this.icon = icon;
         this.size = size;
+        this.isBottomAnchored = bottomAnchored;
         setWidth((int) (width * size));
         setHeight((int) (height * size));
     }
 
-    public InventoryButton(int x, int y, String command){
+    public InventoryButton(int x, int y, String command, boolean bottomAnchored) {
         super(-50, -50, 16, 16, Component.empty());
         this.offsetX = x;
         this.offsetY = y;
@@ -57,6 +60,7 @@ public class InventoryButton extends AbstractWidget {
         this.color = 0xFFFFFFFF;
         this.icon = ItemStackTemplate.fromNonEmptyStack(Items.GRAY_DYE.getDefaultInstance());
         this.size = 1f;
+        this.isBottomAnchored = bottomAnchored;
     }
 
     private void updateScreenPos(){
@@ -66,9 +70,15 @@ public class InventoryButton extends AbstractWidget {
             var handledScreen = (AbstractContainerScreenAccessor) container;
             int leftPos = handledScreen.getX();
             int topPos = handledScreen.getY();
+            int imageHeight = handledScreen.getHeight();
 
+            if (isBottomAnchored) {
+                this.setY(topPos + imageHeight + offsetY);
+            } else {
+                this.setY(topPos + offsetY);
+            }
             this.setX(leftPos + offsetX);
-            this.setY(topPos + offsetY);
+
         }
     }
 
@@ -172,5 +182,13 @@ public class InventoryButton extends AbstractWidget {
         this.size = size;
         setWidth((int) (16 * size));
         setHeight((int) (16 * size));
+    }
+
+    public boolean isBottomAnchored() {
+        return isBottomAnchored;
+    }
+
+    public void setBottomAnchored(boolean bottomAnchored) {
+        isBottomAnchored = bottomAnchored;
     }
 }

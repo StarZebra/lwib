@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec2;
 import org.joml.Matrix3x2fStack;
+import org.jspecify.annotations.NonNull;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
@@ -51,8 +52,13 @@ public class InvButtonEditorScreen extends Screen {
         topPos = (Lwib.mc.getWindow().getGuiScaledHeight() - imageHeight) / 2;
 
         for (InventoryButton button : Lwib.inventoryButtons) {
+
+            if (button.isBottomAnchored()) {
+                button.setY(topPos + imageHeight + button.getOffsetY());
+            } else {
+                button.setY(topPos + button.getOffsetY());
+            }
             button.setX(leftPos + button.getOffsetX());
-            button.setY(topPos + button.getOffsetY());
         }
 
         selectedButton = null;
@@ -142,7 +148,8 @@ public class InvButtonEditorScreen extends Screen {
                 return true;
             }
 
-            var button = new InventoryButton((int) (newBtnPos.x - leftPos), (int) (newBtnPos.y - topPos), this.commandBox.getValue().trim());
+            InventoryButton button = getInventoryButton();
+
             Lwib.inventoryButtons.add(button);
             this.updateScreen();
 
@@ -151,6 +158,19 @@ public class InvButtonEditorScreen extends Screen {
             return true;
         }
         return super.keyPressed(keyEvent);
+    }
+
+    private @NonNull InventoryButton getInventoryButton() {
+        boolean isBottomHalf = newBtnPos.y > (topPos + (imageHeight / 2f));
+
+        InventoryButton button;
+
+        if (isBottomHalf) {
+            button = new InventoryButton((int) (newBtnPos.x - leftPos), (int) (newBtnPos.y - (topPos + imageHeight)), this.commandBox.getValue().trim(), true);
+        } else {
+            button = new InventoryButton((int) (newBtnPos.x - leftPos), (int) (newBtnPos.y - topPos), this.commandBox.getValue().trim(), false);
+        }
+        return button;
     }
 
     @Override

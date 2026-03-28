@@ -35,8 +35,15 @@ public abstract class AbstractContainerScreenMixin extends Screen {
         for(InventoryButton invButton : Lwib.inventoryButtons){
             if(!(screenType instanceof InventoryScreen)){
 
+                int trueY;
+
+                if (invButton.isBottomAnchored()) {
+                    trueY = (topPos + imageHeight + invButton.getOffsetY());
+                } else {
+                    trueY = (topPos + invButton.getOffsetY());
+                }
+
                 int trueX = (leftPos + invButton.getOffsetX());
-                int trueY = (topPos + invButton.getOffsetY());
 
                 if (trueX >= this.leftPos
                         && trueX <= this.leftPos + this.imageWidth
