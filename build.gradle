@@ -1,5 +1,5 @@
 plugins {
-    id 'net.fabricmc.fabric-loom' version '1.15-SNAPSHOT'
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
 }
 
 version = project.mod_version
@@ -21,22 +21,16 @@ repositories {
         url = "https://maven.meteordev.org/releases"
     }
 
-    maven {
-        name = 'ParchmentMC'
-        url = 'https://maven.parchmentmc.org'
-    }
-
 }
 
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    implementation(libs.orbit)
+    implementation("meteordevelopment:orbit:0.2.4")
+    include "meteordevelopment:orbit:0.2.4"
 }
 
 processResources {

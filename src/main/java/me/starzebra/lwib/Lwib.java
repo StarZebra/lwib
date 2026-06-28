@@ -94,11 +94,12 @@ public class Lwib implements ModInitializer {
                 loadedButtons.add(button.resultOrPartial().orElseThrow());
             }
 
+            inventoryButtons.addAll(loadedButtons);
+
+
         }catch (Exception e){
             LOGGER.error("Exception while deserializing buttons: {}", e.getMessage());
         }
-
-        inventoryButtons.addAll(loadedButtons);
 
     }
 
