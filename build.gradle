@@ -29,8 +29,7 @@ dependencies {
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    implementation("meteordevelopment:orbit:0.2.4")
-    include "meteordevelopment:orbit:0.2.4"
+    include(implementation("meteordevelopment:orbit:0.2.4"))
 }
 
 processResources {
